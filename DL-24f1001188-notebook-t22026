@@ -1,1 +1,1331 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.12.13","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"},"kaggle":{"accelerator":"none","dataSources":[{"sourceType":"competition","sourceId":143716}],"dockerImageVersionId":31400,"isInternetEnabled":true,"language":"python","sourceType":"notebook","isGpuEnabled":false}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"# This Python 3 environment comes with many helpful analytics libraries installed\n# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n# For example, here's several helpful packages to load\n\nimport numpy as np # linear algebra\nimport pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n\n# Input data files are available in the read-only \"../input/\" directory\n# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n\nimport os\nfor dirname, _, filenames in os.walk('/kaggle/input'):\n    for filename in filenames:\n        print(os.path.join(dirname, filename))\n\n# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session\n\n# Use the kagglehub client library to attach Kaggle resources like competitions, datasets, and models to your session\n# Learn more about kagglehub: https://github.com/Kaggle/kagglehub/blob/main/README.md\n\nimport kagglehub\n# kagglehub.dataset_download('<owner>/<dataset-slug>')","metadata":{"_uuid":"8f2839f25d086af736a60e9eeb907d3b93b6e0e5","_cell_guid":"b1076dfc-b9ad-4769-8c92-a6c4dae69d19","trusted":true,"execution":{"iopub.status.busy":"2026-06-08T19:08:13.813879Z","iopub.execute_input":"2026-06-08T19:08:13.814129Z","iopub.status.idle":"2026-06-08T19:08:16.599745Z","shell.execute_reply.started":"2026-06-08T19:08:13.814103Z","shell.execute_reply":"2026-06-08T19:08:16.59874Z"}},"outputs":[{"name":"stdout","text":"/kaggle/input/competitions/smart-mcq-solver-challenge/sample_submission.csv\n/kaggle/input/competitions/smart-mcq-solver-challenge/train.csv\n/kaggle/input/competitions/smart-mcq-solver-challenge/test.csv\n","output_type":"stream"}],"execution_count":1},{"cell_type":"code","source":"import pandas as pd\nimport os\n\nDATA_PATH = \"/kaggle/input/competitions/smart-mcq-solver-challenge\"\n\ntrain = pd.read_csv(os.path.join(DATA_PATH, \"train.csv\"))\ntest = pd.read_csv(os.path.join(DATA_PATH, \"test.csv\"))\nsample = pd.read_csv(os.path.join(DATA_PATH, \"sample_submission.csv\"))\n\nprint(train.shape)\nprint(test.shape)\nprint(sample.shape)\n\ntrain.head()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-06-08T19:17:26.893184Z","iopub.execute_input":"2026-06-08T19:17:26.893753Z","iopub.status.idle":"2026-06-08T19:17:27.03837Z","shell.execute_reply.started":"2026-06-08T19:17:26.893716Z","shell.execute_reply":"2026-06-08T19:17:27.037615Z"}},"outputs":[{"name":"stdout","text":"(2000, 8)\n(500, 7)\n(500, 2)\n","output_type":"stream"},{"execution_count":2,"output_type":"execute_result","data":{"text/plain":"   id                                             prompt  \\\n0   1  Pick the best possible answer: What is Martin ...   \n1   2        What is accelerator-based light-ion fusion?   \n2   3  Determine the correct option: What is the term...   \n3   4  Select the most accurate option: What is Marti...   \n4   5  Identify the correct statement: What is the co...   \n\n                                                   A  \\\n0  Martin Heidegger believes that humans exist wi...   \n1  Accelerator-based light-ion fusion is a techni...   \n2                                       Blueshifting   \n3  Martin Heidegger believes that humans exist wi...   \n4  Simultaneity is relative, meaning that two eve...   \n\n                                                   B  \\\n0  Martin Heidegger believes that humans do not e...   \n1  Accelerator-based light-ion fusion is a techni...   \n2                                        Redshifting   \n3  Martin Heidegger believes that humans do not e...   \n4  Simultaneity is relative, meaning that two eve...   \n\n                                                   C  \\\n0  Martin Heidegger does not believe in the exist...   \n1  Accelerator-based light-ion fusion is a techni...   \n2                                          Reddening   \n3  Martin Heidegger does not believe in the exist...   \n4  Simultaneity is absolute, meaning that two eve...   \n\n                                                   D  \\\n0  Martin Heidegger believes that the relationshi...   \n1  Accelerator-based light-ion fusion is a techni...   \n2                                          Whitening   \n3  Martin Heidegger believes that the relationshi...   \n4  Simultaneity is a concept that applies only to...   \n\n                                                   E answer  \n0  Martin Heidegger believes that time is an illu...      B  \n1  Accelerator-based light-ion fusion is a techni...      A  \n2                                          Yellowing      C  \n3  Martin Heidegger believes that time is an illu...      B  \n4  Simultaneity is a concept that applies only to...      A  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>id</th>\n      <th>prompt</th>\n      <th>A</th>\n      <th>B</th>\n      <th>C</th>\n      <th>D</th>\n      <th>E</th>\n      <th>answer</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>Pick the best possible answer: What is Martin ...</td>\n      <td>Martin Heidegger believes that humans exist wi...</td>\n      <td>Martin Heidegger believes that humans do not e...</td>\n      <td>Martin Heidegger does not believe in the exist...</td>\n      <td>Martin Heidegger believes that the relationshi...</td>\n      <td>Martin Heidegger believes that time is an illu...</td>\n      <td>B</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>What is accelerator-based light-ion fusion?</td>\n      <td>Accelerator-based light-ion fusion is a techni...</td>\n      <td>Accelerator-based light-ion fusion is a techni...</td>\n      <td>Accelerator-based light-ion fusion is a techni...</td>\n      <td>Accelerator-based light-ion fusion is a techni...</td>\n      <td>Accelerator-based light-ion fusion is a techni...</td>\n      <td>A</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>Determine the correct option: What is the term...</td>\n      <td>Blueshifting</td>\n      <td>Redshifting</td>\n      <td>Reddening</td>\n      <td>Whitening</td>\n      <td>Yellowing</td>\n      <td>C</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>Select the most accurate option: What is Marti...</td>\n      <td>Martin Heidegger believes that humans exist wi...</td>\n      <td>Martin Heidegger believes that humans do not e...</td>\n      <td>Martin Heidegger does not believe in the exist...</td>\n      <td>Martin Heidegger believes that the relationshi...</td>\n      <td>Martin Heidegger believes that time is an illu...</td>\n      <td>B</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>Identify the correct statement: What is the co...</td>\n      <td>Simultaneity is relative, meaning that two eve...</td>\n      <td>Simultaneity is relative, meaning that two eve...</td>\n      <td>Simultaneity is absolute, meaning that two eve...</td>\n      <td>Simultaneity is a concept that applies only to...</td>\n      <td>Simultaneity is a concept that applies only to...</td>\n      <td>A</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}],"execution_count":2},{"cell_type":"code","source":"train[\"answer\"].value_counts(normalize=True)","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-06-08T19:17:35.085333Z","iopub.execute_input":"2026-06-08T19:17:35.086161Z","iopub.status.idle":"2026-06-08T19:17:35.109982Z","shell.execute_reply.started":"2026-06-08T19:17:35.086127Z","shell.execute_reply":"2026-06-08T19:17:35.109074Z"}},"outputs":[{"execution_count":3,"output_type":"execute_result","data":{"text/plain":"answer\nB    0.2450\nC    0.2295\nA    0.1845\nD    0.1790\nE    0.1620\nName: proportion, dtype: float64"},"metadata":{}}],"execution_count":3},{"cell_type":"code","source":"top3_answers = train[\"answer\"].value_counts().index[:3].tolist()\ntop3_answers","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-06-08T19:17:44.143995Z","iopub.execute_input":"2026-06-08T19:17:44.144667Z","iopub.status.idle":"2026-06-08T19:17:44.151358Z","shell.execute_reply.started":"2026-06-08T19:17:44.144635Z","shell.execute_reply":"2026-06-08T19:17:44.150706Z"}},"outputs":[{"execution_count":4,"output_type":"execute_result","data":{"text/plain":"['B', 'C', 'A']"},"metadata":{}}],"execution_count":4},{"cell_type":"code","source":"submission = pd.DataFrame({\n    \"ID\": test[\"id\"],\n    \"Prediction\": [\" \".join(top3_answers)] * len(test)\n})\n\nsubmission.head()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-06-08T19:17:51.013102Z","iopub.execute_input":"2026-06-08T19:17:51.013425Z","iopub.status.idle":"2026-06-08T19:17:51.025639Z","shell.execute_reply.started":"2026-06-08T19:17:51.013397Z","shell.execute_reply":"2026-06-08T19:17:51.024799Z"}},"outputs":[{"execution_count":5,"output_type":"execute_result","data":{"text/plain":"   ID Prediction\n0   1      B C A\n1   2      B C A\n2   3      B C A\n3   4      B C A\n4   5      B C A","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>ID</th>\n      <th>Prediction</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>B C A</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}],"execution_count":5},{"cell_type":"code","source":"submission.to_csv(\"submission.csv\", index=False)\n\nprint(\"Saved submission.csv\")\nsubmission.head()","metadata":{"trusted":true,"execution":{"iopub.status.busy":"2026-06-08T19:18:03.964702Z","iopub.execute_input":"2026-06-08T19:18:03.965005Z","iopub.status.idle":"2026-06-08T19:18:03.98258Z","shell.execute_reply.started":"2026-06-08T19:18:03.964981Z","shell.execute_reply":"2026-06-08T19:18:03.981496Z"}},"outputs":[{"name":"stdout","text":"Saved submission.csv\n","output_type":"stream"},{"execution_count":6,"output_type":"execute_result","data":{"text/plain":"   ID Prediction\n0   1      B C A\n1   2      B C A\n2   3      B C A\n3   4      B C A\n4   5      B C A","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>ID</th>\n      <th>Prediction</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>1</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>2</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>3</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>4</td>\n      <td>B C A</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>5</td>\n      <td>B C A</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}],"execution_count":6},{"cell_type":"code","source":"","metadata":{"trusted":true},"outputs":[],"execution_count":null}]}
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "26bc585f",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:28.089391Z",
+     "iopub.status.busy": "2026-06-22T17:47:28.088853Z",
+     "iopub.status.idle": "2026-06-22T17:47:30.537314Z",
+     "shell.execute_reply": "2026-06-22T17:47:30.536318Z"
+    },
+    "papermill": {
+     "duration": 2.458149,
+     "end_time": "2026-06-22T17:47:30.539854+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:28.081705+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/competitions/smart-mcq-solver-challenge/sample_submission.csv\n",
+      "/kaggle/input/competitions/smart-mcq-solver-challenge/train.csv\n",
+      "/kaggle/input/competitions/smart-mcq-solver-challenge/test.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session\n",
+    "\n",
+    "# Use the kagglehub client library to attach Kaggle resources like competitions, datasets, and models to your session\n",
+    "# Learn more about kagglehub: https://github.com/Kaggle/kagglehub/blob/main/README.md\n",
+    "\n",
+    "import kagglehub\n",
+    "# kagglehub.dataset_download('<owner>/<dataset-slug>')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "7d9fbffd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:30.552791Z",
+     "iopub.status.busy": "2026-06-22T17:47:30.551502Z",
+     "iopub.status.idle": "2026-06-22T17:47:32.668722Z",
+     "shell.execute_reply": "2026-06-22T17:47:32.667682Z"
+    },
+    "papermill": {
+     "duration": 2.1272,
+     "end_time": "2026-06-22T17:47:32.671384+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:30.544184+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "import string\n",
+    "import warnings\n",
+    "from sklearn.feature_extraction.text import (\n",
+    "    TfidfVectorizer,\n",
+    "    ENGLISH_STOP_WORDS\n",
+    ")\n",
+    "from sklearn.metrics.pairwise import cosine_similarity\n",
+    "\n",
+    "warnings.filterwarnings(\"ignore\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "2b1abf68",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:32.682319Z",
+     "iopub.status.busy": "2026-06-22T17:47:32.681061Z",
+     "iopub.status.idle": "2026-06-22T17:47:32.775983Z",
+     "shell.execute_reply": "2026-06-22T17:47:32.774279Z"
+    },
+    "papermill": {
+     "duration": 0.10311,
+     "end_time": "2026-06-22T17:47:32.778581+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:32.675471+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(2000, 8)\n",
+      "(500, 7)\n",
+      "(500, 2)\n"
+     ]
+    }
+   ],
+   "source": [
+    "train = pd.read_csv(\"/kaggle/input/competitions/smart-mcq-solver-challenge/train.csv\")\n",
+    "test = pd.read_csv(\"/kaggle/input/competitions/smart-mcq-solver-challenge/test.csv\")\n",
+    "sample = pd.read_csv(\"/kaggle/input/competitions/smart-mcq-solver-challenge/sample_submission.csv\")\n",
+    "\n",
+    "print(train.shape)\n",
+    "print(test.shape)\n",
+    "print(sample.shape)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "c6885b75",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:32.789613Z",
+     "iopub.status.busy": "2026-06-22T17:47:32.788494Z",
+     "iopub.status.idle": "2026-06-22T17:47:32.824641Z",
+     "shell.execute_reply": "2026-06-22T17:47:32.823457Z"
+    },
+    "papermill": {
+     "duration": 0.04402,
+     "end_time": "2026-06-22T17:47:32.826796+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:32.782776+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>prompt</th>\n",
+       "      <th>A</th>\n",
+       "      <th>B</th>\n",
+       "      <th>C</th>\n",
+       "      <th>D</th>\n",
+       "      <th>E</th>\n",
+       "      <th>answer</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>Pick the best possible answer: What is Martin ...</td>\n",
+       "      <td>Martin Heidegger believes that humans exist wi...</td>\n",
+       "      <td>Martin Heidegger believes that humans do not e...</td>\n",
+       "      <td>Martin Heidegger does not believe in the exist...</td>\n",
+       "      <td>Martin Heidegger believes that the relationshi...</td>\n",
+       "      <td>Martin Heidegger believes that time is an illu...</td>\n",
+       "      <td>B</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>What is accelerator-based light-ion fusion?</td>\n",
+       "      <td>Accelerator-based light-ion fusion is a techni...</td>\n",
+       "      <td>Accelerator-based light-ion fusion is a techni...</td>\n",
+       "      <td>Accelerator-based light-ion fusion is a techni...</td>\n",
+       "      <td>Accelerator-based light-ion fusion is a techni...</td>\n",
+       "      <td>Accelerator-based light-ion fusion is a techni...</td>\n",
+       "      <td>A</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>Determine the correct option: What is the term...</td>\n",
+       "      <td>Blueshifting</td>\n",
+       "      <td>Redshifting</td>\n",
+       "      <td>Reddening</td>\n",
+       "      <td>Whitening</td>\n",
+       "      <td>Yellowing</td>\n",
+       "      <td>C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>Select the most accurate option: What is Marti...</td>\n",
+       "      <td>Martin Heidegger believes that humans exist wi...</td>\n",
+       "      <td>Martin Heidegger believes that humans do not e...</td>\n",
+       "      <td>Martin Heidegger does not believe in the exist...</td>\n",
+       "      <td>Martin Heidegger believes that the relationshi...</td>\n",
+       "      <td>Martin Heidegger believes that time is an illu...</td>\n",
+       "      <td>B</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>Identify the correct statement: What is the co...</td>\n",
+       "      <td>Simultaneity is relative, meaning that two eve...</td>\n",
+       "      <td>Simultaneity is relative, meaning that two eve...</td>\n",
+       "      <td>Simultaneity is absolute, meaning that two eve...</td>\n",
+       "      <td>Simultaneity is a concept that applies only to...</td>\n",
+       "      <td>Simultaneity is a concept that applies only to...</td>\n",
+       "      <td>A</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id                                             prompt  \\\n",
+       "0   1  Pick the best possible answer: What is Martin ...   \n",
+       "1   2        What is accelerator-based light-ion fusion?   \n",
+       "2   3  Determine the correct option: What is the term...   \n",
+       "3   4  Select the most accurate option: What is Marti...   \n",
+       "4   5  Identify the correct statement: What is the co...   \n",
+       "\n",
+       "                                                   A  \\\n",
+       "0  Martin Heidegger believes that humans exist wi...   \n",
+       "1  Accelerator-based light-ion fusion is a techni...   \n",
+       "2                                       Blueshifting   \n",
+       "3  Martin Heidegger believes that humans exist wi...   \n",
+       "4  Simultaneity is relative, meaning that two eve...   \n",
+       "\n",
+       "                                                   B  \\\n",
+       "0  Martin Heidegger believes that humans do not e...   \n",
+       "1  Accelerator-based light-ion fusion is a techni...   \n",
+       "2                                        Redshifting   \n",
+       "3  Martin Heidegger believes that humans do not e...   \n",
+       "4  Simultaneity is relative, meaning that two eve...   \n",
+       "\n",
+       "                                                   C  \\\n",
+       "0  Martin Heidegger does not believe in the exist...   \n",
+       "1  Accelerator-based light-ion fusion is a techni...   \n",
+       "2                                          Reddening   \n",
+       "3  Martin Heidegger does not believe in the exist...   \n",
+       "4  Simultaneity is absolute, meaning that two eve...   \n",
+       "\n",
+       "                                                   D  \\\n",
+       "0  Martin Heidegger believes that the relationshi...   \n",
+       "1  Accelerator-based light-ion fusion is a techni...   \n",
+       "2                                          Whitening   \n",
+       "3  Martin Heidegger believes that the relationshi...   \n",
+       "4  Simultaneity is a concept that applies only to...   \n",
+       "\n",
+       "                                                   E answer  \n",
+       "0  Martin Heidegger believes that time is an illu...      B  \n",
+       "1  Accelerator-based light-ion fusion is a techni...      A  \n",
+       "2                                          Yellowing      C  \n",
+       "3  Martin Heidegger believes that time is an illu...      B  \n",
+       "4  Simultaneity is a concept that applies only to...      A  "
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "e9e7afcb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:32.837779Z",
+     "iopub.status.busy": "2026-06-22T17:47:32.837360Z",
+     "iopub.status.idle": "2026-06-22T17:47:32.850252Z",
+     "shell.execute_reply": "2026-06-22T17:47:32.849217Z"
+    },
+    "papermill": {
+     "duration": 0.020866,
+     "end_time": "2026-06-22T17:47:32.852436+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:32.831570+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>id</th>\n",
+       "      <th>prompt</th>\n",
+       "      <th>A</th>\n",
+       "      <th>B</th>\n",
+       "      <th>C</th>\n",
+       "      <th>D</th>\n",
+       "      <th>E</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>Pick the best possible answer: What is the rel...</td>\n",
+       "      <td>For every eigenstate of one Hamiltonian, its p...</td>\n",
+       "      <td>For every eigenstate of one Hamiltonian, its p...</td>\n",
+       "      <td>For every eigenstate of one Hamiltonian, its p...</td>\n",
+       "      <td>For every eigenstate of one Hamiltonian, its p...</td>\n",
+       "      <td>For every eigenstate of one Hamiltonian, its p...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>What is the estimated redshift of CEERS-93316,...</td>\n",
+       "      <td>Approximately z = 6.0, corresponding to 1 bill...</td>\n",
+       "      <td>Approximately z = 16.7, corresponding to 235.8...</td>\n",
+       "      <td>Approximately z = 3.0, corresponding to 5 bill...</td>\n",
+       "      <td>Approximately z = 10.0, corresponding to 13 bi...</td>\n",
+       "      <td>Approximately z = 13.0, corresponding to 30 bi...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>Pick the best possible answer: What is the rea...</td>\n",
+       "      <td>The sun appears yellowish due to a reflection ...</td>\n",
+       "      <td>The longer wavelengths of light, such as red a...</td>\n",
+       "      <td>The sun appears yellowish due to the scatterin...</td>\n",
+       "      <td>The sun emits a yellow light due to its own sp...</td>\n",
+       "      <td>The atmosphere absorbs the shorter wavelengths...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>What is the significance of the redshift-dista...</td>\n",
+       "      <td>Observations of the redshift-distance relation...</td>\n",
+       "      <td>Observations of the redshift-distance relation...</td>\n",
+       "      <td>Observations of the redshift-distance relation...</td>\n",
+       "      <td>Observations of the redshift-distance relation...</td>\n",
+       "      <td>Observations of the redshift-distance relation...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>What is the Landau-Lifshitz-Gilbert equation u...</td>\n",
+       "      <td>The Landau-Lifshitz-Gilbert equation is a diff...</td>\n",
+       "      <td>The Landau-Lifshitz-Gilbert equation is a diff...</td>\n",
+       "      <td>The Landau-Lifshitz-Gilbert equation is a diff...</td>\n",
+       "      <td>The Landau-Lifshitz-Gilbert equation is a diff...</td>\n",
+       "      <td>The Landau-Lifshitz-Gilbert equation is a diff...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   id                                             prompt  \\\n",
+       "0   1  Pick the best possible answer: What is the rel...   \n",
+       "1   2  What is the estimated redshift of CEERS-93316,...   \n",
+       "2   3  Pick the best possible answer: What is the rea...   \n",
+       "3   4  What is the significance of the redshift-dista...   \n",
+       "4   5  What is the Landau-Lifshitz-Gilbert equation u...   \n",
+       "\n",
+       "                                                   A  \\\n",
+       "0  For every eigenstate of one Hamiltonian, its p...   \n",
+       "1  Approximately z = 6.0, corresponding to 1 bill...   \n",
+       "2  The sun appears yellowish due to a reflection ...   \n",
+       "3  Observations of the redshift-distance relation...   \n",
+       "4  The Landau-Lifshitz-Gilbert equation is a diff...   \n",
+       "\n",
+       "                                                   B  \\\n",
+       "0  For every eigenstate of one Hamiltonian, its p...   \n",
+       "1  Approximately z = 16.7, corresponding to 235.8...   \n",
+       "2  The longer wavelengths of light, such as red a...   \n",
+       "3  Observations of the redshift-distance relation...   \n",
+       "4  The Landau-Lifshitz-Gilbert equation is a diff...   \n",
+       "\n",
+       "                                                   C  \\\n",
+       "0  For every eigenstate of one Hamiltonian, its p...   \n",
+       "1  Approximately z = 3.0, corresponding to 5 bill...   \n",
+       "2  The sun appears yellowish due to the scatterin...   \n",
+       "3  Observations of the redshift-distance relation...   \n",
+       "4  The Landau-Lifshitz-Gilbert equation is a diff...   \n",
+       "\n",
+       "                                                   D  \\\n",
+       "0  For every eigenstate of one Hamiltonian, its p...   \n",
+       "1  Approximately z = 10.0, corresponding to 13 bi...   \n",
+       "2  The sun emits a yellow light due to its own sp...   \n",
+       "3  Observations of the redshift-distance relation...   \n",
+       "4  The Landau-Lifshitz-Gilbert equation is a diff...   \n",
+       "\n",
+       "                                                   E  \n",
+       "0  For every eigenstate of one Hamiltonian, its p...  \n",
+       "1  Approximately z = 13.0, corresponding to 30 bi...  \n",
+       "2  The atmosphere absorbs the shorter wavelengths...  \n",
+       "3  Observations of the redshift-distance relation...  \n",
+       "4  The Landau-Lifshitz-Gilbert equation is a diff...  "
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "test.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "5f942d3a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:32.864251Z",
+     "iopub.status.busy": "2026-06-22T17:47:32.863241Z",
+     "iopub.status.idle": "2026-06-22T17:47:32.874811Z",
+     "shell.execute_reply": "2026-06-22T17:47:32.873732Z"
+    },
+    "papermill": {
+     "duration": 0.020065,
+     "end_time": "2026-06-22T17:47:32.877166+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:32.857101+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "id        0\n",
+       "prompt    0\n",
+       "A         0\n",
+       "B         0\n",
+       "C         0\n",
+       "D         0\n",
+       "E         0\n",
+       "answer    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "274a807a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:32.888672Z",
+     "iopub.status.busy": "2026-06-22T17:47:32.888246Z",
+     "iopub.status.idle": "2026-06-22T17:47:32.895478Z",
+     "shell.execute_reply": "2026-06-22T17:47:32.894481Z"
+    },
+    "papermill": {
+     "duration": 0.016197,
+     "end_time": "2026-06-22T17:47:32.898148+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:32.881951+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def clean_text(text, remove_stopwords=False, tokenize=False):\n",
+    "    \"\"\"\n",
+    "    Cleans input text by:\n",
+    "    1. Converting to lowercase\n",
+    "    2. Removing punctuation\n",
+    "    3. Optionally removing English stopwords\n",
+    "    4. Optionally tokenizing the text\n",
+    "    \"\"\"\n",
+    "\n",
+    "    text = text.lower()\n",
+    "    text = text.translate(str.maketrans('', '', string.punctuation))\n",
+    "    words = text.split()\n",
+    "\n",
+    "    if remove_stopwords:\n",
+    "        words = [word for word in words if word not in ENGLISH_STOP_WORDS]\n",
+    "\n",
+    "    if tokenize:\n",
+    "        return words\n",
+    "\n",
+    "    return \" \".join(words)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "94542c86",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:32.910125Z",
+     "iopub.status.busy": "2026-06-22T17:47:32.909755Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.102820Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.101744Z"
+    },
+    "papermill": {
+     "duration": 0.202076,
+     "end_time": "2026-06-22T17:47:33.105305+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:32.903229+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "text_columns = [\"prompt\", \"A\", \"B\", \"C\", \"D\", \"E\"]\n",
+    "\n",
+    "for col in text_columns:\n",
+    "    train[col] = train[col].apply(clean_text)\n",
+    "    test[col] = test[col].apply(clean_text)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "38347048",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.117685Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.117267Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.135673Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.134575Z"
+    },
+    "papermill": {
+     "duration": 0.027332,
+     "end_time": "2026-06-22T17:47:33.137854+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.110522+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>prompt</th>\n",
+       "      <th>A</th>\n",
+       "      <th>B</th>\n",
+       "      <th>C</th>\n",
+       "      <th>D</th>\n",
+       "      <th>E</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>pick the best possible answer what is martin h...</td>\n",
+       "      <td>martin heidegger believes that humans exist wi...</td>\n",
+       "      <td>martin heidegger believes that humans do not e...</td>\n",
+       "      <td>martin heidegger does not believe in the exist...</td>\n",
+       "      <td>martin heidegger believes that the relationshi...</td>\n",
+       "      <td>martin heidegger believes that time is an illu...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>what is acceleratorbased lightion fusion</td>\n",
+       "      <td>acceleratorbased lightion fusion is a techniqu...</td>\n",
+       "      <td>acceleratorbased lightion fusion is a techniqu...</td>\n",
+       "      <td>acceleratorbased lightion fusion is a techniqu...</td>\n",
+       "      <td>acceleratorbased lightion fusion is a techniqu...</td>\n",
+       "      <td>acceleratorbased lightion fusion is a techniqu...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>determine the correct option what is the term ...</td>\n",
+       "      <td>blueshifting</td>\n",
+       "      <td>redshifting</td>\n",
+       "      <td>reddening</td>\n",
+       "      <td>whitening</td>\n",
+       "      <td>yellowing</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>select the most accurate option what is martin...</td>\n",
+       "      <td>martin heidegger believes that humans exist wi...</td>\n",
+       "      <td>martin heidegger believes that humans do not e...</td>\n",
+       "      <td>martin heidegger does not believe in the exist...</td>\n",
+       "      <td>martin heidegger believes that the relationshi...</td>\n",
+       "      <td>martin heidegger believes that time is an illu...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>identify the correct statement what is the con...</td>\n",
+       "      <td>simultaneity is relative meaning that two even...</td>\n",
+       "      <td>simultaneity is relative meaning that two even...</td>\n",
+       "      <td>simultaneity is absolute meaning that two even...</td>\n",
+       "      <td>simultaneity is a concept that applies only to...</td>\n",
+       "      <td>simultaneity is a concept that applies only to...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                              prompt  \\\n",
+       "0  pick the best possible answer what is martin h...   \n",
+       "1           what is acceleratorbased lightion fusion   \n",
+       "2  determine the correct option what is the term ...   \n",
+       "3  select the most accurate option what is martin...   \n",
+       "4  identify the correct statement what is the con...   \n",
+       "\n",
+       "                                                   A  \\\n",
+       "0  martin heidegger believes that humans exist wi...   \n",
+       "1  acceleratorbased lightion fusion is a techniqu...   \n",
+       "2                                       blueshifting   \n",
+       "3  martin heidegger believes that humans exist wi...   \n",
+       "4  simultaneity is relative meaning that two even...   \n",
+       "\n",
+       "                                                   B  \\\n",
+       "0  martin heidegger believes that humans do not e...   \n",
+       "1  acceleratorbased lightion fusion is a techniqu...   \n",
+       "2                                        redshifting   \n",
+       "3  martin heidegger believes that humans do not e...   \n",
+       "4  simultaneity is relative meaning that two even...   \n",
+       "\n",
+       "                                                   C  \\\n",
+       "0  martin heidegger does not believe in the exist...   \n",
+       "1  acceleratorbased lightion fusion is a techniqu...   \n",
+       "2                                          reddening   \n",
+       "3  martin heidegger does not believe in the exist...   \n",
+       "4  simultaneity is absolute meaning that two even...   \n",
+       "\n",
+       "                                                   D  \\\n",
+       "0  martin heidegger believes that the relationshi...   \n",
+       "1  acceleratorbased lightion fusion is a techniqu...   \n",
+       "2                                          whitening   \n",
+       "3  martin heidegger believes that the relationshi...   \n",
+       "4  simultaneity is a concept that applies only to...   \n",
+       "\n",
+       "                                                   E  \n",
+       "0  martin heidegger believes that time is an illu...  \n",
+       "1  acceleratorbased lightion fusion is a techniqu...  \n",
+       "2                                          yellowing  \n",
+       "3  martin heidegger believes that time is an illu...  \n",
+       "4  simultaneity is a concept that applies only to...  "
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train[[\"prompt\", \"A\", \"B\", \"C\", \"D\", \"E\"]].head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9d6e772a",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.151612Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.150276Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.157590Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.156513Z"
+    },
+    "papermill": {
+     "duration": 0.017046,
+     "end_time": "2026-06-22T17:47:33.160051+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.143005+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def pred_score(actual, predicted):\n",
+    "    predicted = predicted[:3]\n",
+    "    \n",
+    "    if actual in predicted:\n",
+    "        return 1 / (predicted.index(actual) + 1)\n",
+    "    \n",
+    "    return 0\n",
+    "\n",
+    "\n",
+    "def map3_score(actuals, predictions):\n",
+    "    scores = []\n",
+    "    \n",
+    "    for actual, predicted in zip(actuals, predictions):\n",
+    "        scores.append(pred_score(actual, predicted))\n",
+    "    \n",
+    "    return np.mean(scores)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "3a45a57b",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.172750Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.172303Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.187796Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.186641Z"
+    },
+    "papermill": {
+     "duration": 0.02508,
+     "end_time": "2026-06-22T17:47:33.190587+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.165507+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Top 3 Majority Answers: ['B', 'C', 'A']\n"
+     ]
+    }
+   ],
+   "source": [
+    "answer_freq = train[\"answer\"].value_counts()\n",
+    "majority_prediction = answer_freq.index[:3].tolist()\n",
+    "print(\"Top 3 Majority Answers:\", majority_prediction)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "dc5d32e0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.204696Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.204011Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.211973Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.210643Z"
+    },
+    "papermill": {
+     "duration": 0.018693,
+     "end_time": "2026-06-22T17:47:33.214900+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.196207+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Majority Baseline MAP@3: 0.4212\n"
+     ]
+    }
+   ],
+   "source": [
+    "majority_predictions = [majority_prediction] * len(train)\n",
+    "majority_map3 = map3_score(\n",
+    "    train[\"answer\"],\n",
+    "    majority_predictions\n",
+    ")\n",
+    "\n",
+    "print(\"Majority Baseline MAP@3:\", round(majority_map3, 4))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "401382fa",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.226957Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.226575Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.238685Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.237706Z"
+    },
+    "papermill": {
+     "duration": 0.021073,
+     "end_time": "2026-06-22T17:47:33.241002+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.219929+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Model</th>\n",
+       "      <th>MAP@3</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Majority Baseline</td>\n",
+       "      <td>0.4212</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "               Model   MAP@3\n",
+       "0  Majority Baseline  0.4212"
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "results = pd.DataFrame({\n",
+    "    \"Model\": [\"Majority Baseline\"],\n",
+    "    \"MAP@3\": [round(majority_map3, 4)]\n",
+    "})\n",
+    "\n",
+    "results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "d56ddacb",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.253194Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.252838Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.259503Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.258176Z"
+    },
+    "papermill": {
+     "duration": 0.01556,
+     "end_time": "2026-06-22T17:47:33.261779+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.246219+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def build_tfidf_vectorizer(train_df):\n",
+    "    \"\"\"\n",
+    "    Builds and fits a TF-IDF vectorizer using\n",
+    "    the combined prompt and options.\n",
+    "    \"\"\"\n",
+    "\n",
+    "    combined_text = (\n",
+    "        train_df[\"prompt\"] + \" \" +\n",
+    "        train_df[\"A\"] + \" \" +\n",
+    "        train_df[\"B\"] + \" \" +\n",
+    "        train_df[\"C\"] + \" \" +\n",
+    "        train_df[\"D\"] + \" \" +\n",
+    "        train_df[\"E\"]\n",
+    "    )\n",
+    "\n",
+    "    vectorizer = TfidfVectorizer(stop_words=\"english\")\n",
+    "    vectorizer.fit(combined_text)\n",
+    "\n",
+    "    return vectorizer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "25728e03",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.273902Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.273505Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.482646Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.481524Z"
+    },
+    "papermill": {
+     "duration": 0.218069,
+     "end_time": "2026-06-22T17:47:33.484947+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.266878+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "TF-IDF vocabulary size: 2865\n"
+     ]
+    }
+   ],
+   "source": [
+    "tfidf_vectorizer = build_tfidf_vectorizer(train)\n",
+    "print(\"TF-IDF vocabulary size:\", len(tfidf_vectorizer.vocabulary_))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "ad230b55",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.497611Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.497158Z",
+     "iopub.status.idle": "2026-06-22T17:47:33.504676Z",
+     "shell.execute_reply": "2026-06-22T17:47:33.503491Z"
+    },
+    "papermill": {
+     "duration": 0.016549,
+     "end_time": "2026-06-22T17:47:33.506688+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.490139+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "def predict_tfidf_top3(df, vectorizer):\n",
+    "    options = [\"A\", \"B\", \"C\", \"D\", \"E\"]\n",
+    "    predictions = []\n",
+    "    \n",
+    "    for _, row in df.iterrows():\n",
+    "        prompt_vec = vectorizer.transform([row[\"prompt\"]])\n",
+    "        \n",
+    "        similarities = {}\n",
+    "        \n",
+    "        for opt in options:\n",
+    "            option_vec = vectorizer.transform([row[opt]])\n",
+    "            sim = cosine_similarity(prompt_vec, option_vec)[0][0]\n",
+    "            similarities[opt] = sim\n",
+    "        \n",
+    "        sorted_options = sorted(similarities, key=similarities.get, reverse=True)\n",
+    "        predictions.append(sorted_options[:3])\n",
+    "    \n",
+    "    return predictions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "878e0e2f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:33.520899Z",
+     "iopub.status.busy": "2026-06-22T17:47:33.519932Z",
+     "iopub.status.idle": "2026-06-22T17:47:45.609760Z",
+     "shell.execute_reply": "2026-06-22T17:47:45.608515Z"
+    },
+    "papermill": {
+     "duration": 12.099901,
+     "end_time": "2026-06-22T17:47:45.611895+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:33.511994+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "TF-IDF Train MAP@3: 0.2826\n"
+     ]
+    }
+   ],
+   "source": [
+    "tfidf_train_predictions = predict_tfidf_top3(train, tfidf_vectorizer)\n",
+    "tfidf_map3 = map3_score(train[\"answer\"], tfidf_train_predictions)\n",
+    "\n",
+    "print(\"TF-IDF Train MAP@3:\", round(tfidf_map3, 4))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "86db23ff",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:45.624739Z",
+     "iopub.status.busy": "2026-06-22T17:47:45.624277Z",
+     "iopub.status.idle": "2026-06-22T17:47:45.636713Z",
+     "shell.execute_reply": "2026-06-22T17:47:45.635570Z"
+    },
+    "papermill": {
+     "duration": 0.021574,
+     "end_time": "2026-06-22T17:47:45.638770+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:45.617196+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Model</th>\n",
+       "      <th>MAP@3</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Majority Baseline</td>\n",
+       "      <td>0.4212</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>TF-IDF Cosine</td>\n",
+       "      <td>0.2826</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "               Model   MAP@3\n",
+       "0  Majority Baseline  0.4212\n",
+       "1      TF-IDF Cosine  0.2826"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "results.loc[len(results)] = [\n",
+    "    \"TF-IDF Cosine\",\n",
+    "    round(tfidf_map3, 4)\n",
+    "]\n",
+    "results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "ccb20d9c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:45.651255Z",
+     "iopub.status.busy": "2026-06-22T17:47:45.650872Z",
+     "iopub.status.idle": "2026-06-22T17:47:48.694268Z",
+     "shell.execute_reply": "2026-06-22T17:47:48.693137Z"
+    },
+    "papermill": {
+     "duration": 3.052523,
+     "end_time": "2026-06-22T17:47:48.696586+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:45.644063+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>ID</th>\n",
+       "      <th>Prediction</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>1</td>\n",
+       "      <td>A B C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>2</td>\n",
+       "      <td>A B C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>3</td>\n",
+       "      <td>A D C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>4</td>\n",
+       "      <td>A E C</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>5</td>\n",
+       "      <td>A E C</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   ID Prediction\n",
+       "0   1      A B C\n",
+       "1   2      A B C\n",
+       "2   3      A D C\n",
+       "3   4      A E C\n",
+       "4   5      A E C"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "test_predictions = predict_tfidf_top3(test, tfidf_vectorizer)\n",
+    "submission = pd.DataFrame({\n",
+    "    \"ID\": test[\"id\"],\n",
+    "    \"Prediction\": [\" \".join(pred) for pred in test_predictions]\n",
+    "})\n",
+    "\n",
+    "submission.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "56a9b251",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-06-22T17:47:48.710304Z",
+     "iopub.status.busy": "2026-06-22T17:47:48.709286Z",
+     "iopub.status.idle": "2026-06-22T17:47:48.722769Z",
+     "shell.execute_reply": "2026-06-22T17:47:48.721526Z"
+    },
+    "papermill": {
+     "duration": 0.022602,
+     "end_time": "2026-06-22T17:47:48.724841+00:00",
+     "exception": false,
+     "start_time": "2026-06-22T17:47:48.702239+00:00",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "submission.csv created successfully!\n"
+     ]
+    }
+   ],
+   "source": [
+    "submission.to_csv(\"submission.csv\", index=False)\n",
+    "print(\"submission.csv created successfully!\")"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [],
+   "dockerImageVersionId": 28755,
+   "isGpuEnabled": false,
+   "isInternetEnabled": false,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 25.170185,
+   "end_time": "2026-06-22T17:47:49.653500+00:00",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2026-06-22T17:47:24.483315+00:00",
+   "version": "2.7.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
