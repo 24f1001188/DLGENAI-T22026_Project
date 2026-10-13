@@ -328,9 +328,10 @@ Potential improvements include:
 
 **Hemalatha Baskar**
 
-Final-year B.Tech student in Computer Science and Engineering
+- B.Tech in Computer Science and Engineering — IIITDM Kancheepuram
+- BS in Data Science and Applications — IIT Madras
 
-Interested in Natural Language Processing, Deep Learning, Generative AI, and building machine learning solutions for real-world problems.
+Interested in Full-Stack Development, Artificial Intelligence, Machine Learning, Deep Learning, Natural Language Processing, and Generative AI, with a focus on building scalable software applications and intelligent solutions to real-world problems.
 
 ---
 
